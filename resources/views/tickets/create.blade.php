@@ -1,0 +1,89 @@
+@extends('layouts.app')
+
+@section('title', 'New Ticket')
+
+@section('content')
+<div class="max-w-2xl mx-auto bg-white rounded-xl border border-slate-200 p-6">
+    <h1 class="text-lg font-semibold mb-4">Create Ticket</h1>
+
+    <form method="POST" action="{{ route('tickets.store') }}" enctype="multipart/form-data" class="space-y-4">
+        @csrf
+
+        <div>
+            <label class="block text-sm font-medium mb-1">Title</label>
+            <input type="text" name="title" value="{{ old('title') }}" required
+                   class="w-full rounded-md border-slate-300" placeholder="e.g. Printer on 3rd floor not printing">
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium mb-1">Description</label>
+            <textarea name="description" rows="4" class="w-full rounded-md border-slate-300"
+                      placeholder="Describe the issue in detail...">{{ old('description') }}</textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">Column / Status</label>
+                <select name="status_id" required class="w-full rounded-md border-slate-300">
+                    @foreach ($statuses as $status)
+                        <option value="{{ $status->id }}" {{ old('status_id') == $status->id ? 'selected' : '' }}>{{ $status->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Priority</label>
+                <select name="priority" class="w-full rounded-md border-slate-300">
+                    @foreach (['low', 'medium', 'high', 'urgent'] as $p)
+                        <option value="{{ $p }}" {{ old('priority', 'medium') === $p ? 'selected' : '' }}>{{ ucfirst($p) }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">Reporter</label>
+                <input type="text" name="reporter" value="{{ old('reporter') }}" class="w-full rounded-md border-slate-300" placeholder="Who is reporting this?">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Assignee</label>
+                <input type="text" name="assignee" value="{{ old('assignee') }}" class="w-full rounded-md border-slate-300" placeholder="Who will handle this?">
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium mb-1">Due date</label>
+            <input type="date" name="due_date" value="{{ old('due_date') }}" class="rounded-md border-slate-300">
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium mb-1">Categories</label>
+            @if ($categories->isEmpty())
+                <p class="text-sm text-slate-400">No categories yet. <a href="{{ route('categories.index') }}" class="text-emerald-600 underline">Create one</a>.</p>
+            @else
+                <div class="flex flex-wrap gap-3">
+                    @foreach ($categories as $cat)
+                        <label class="inline-flex items-center gap-1.5 text-sm bg-slate-50 border border-slate-200 rounded-full px-3 py-1 cursor-pointer">
+                            <input type="checkbox" name="categories[]" value="{{ $cat->id }}"
+                                   {{ collect(old('categories'))->contains($cat->id) ? 'checked' : '' }}>
+                            <span style="color: {{ $cat->color }};">{{ $cat->name }}</span>
+                        </label>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium mb-1">Attachments (images / videos)</label>
+            <input type="file" name="attachments[]" multiple accept="image/*,video/*"
+                   class="w-full text-sm border border-slate-300 rounded-md p-2">
+            <p class="text-xs text-slate-400 mt-1">Use these to show the problem, and later as your means of verification (MOV) once it's resolved. Max 100MB per file.</p>
+        </div>
+
+        <div class="flex items-center gap-3 pt-2">
+            <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-medium px-4 py-2 rounded-md text-sm">Create Ticket</button>
+            <a href="{{ route('tickets.index') }}" class="text-sm text-slate-500 hover:text-slate-700">Cancel</a>
+        </div>
+    </form>
+</div>
+@endsection
