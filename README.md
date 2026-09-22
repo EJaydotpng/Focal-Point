@@ -10,34 +10,7 @@ A lightweight, self-hosted Jira-style ticketing board for internal IT support.
 - **Image & video attachments per ticket** — upload photos/screen recordings of the problem, and later use the same area to upload your "means of verification" (MOV) once resolved
 - Built with plain Blade + Tailwind (CDN) + Alpine.js + SortableJS — **no npm build step required**
 
-## ⚠️ Important — how to install this
-
-This folder contains only the **application code** (models, controllers, migrations, routes, views) — not a full Laravel installation (the `vendor/` folder and Laravel framework itself, which is ~50MB of files pulled from Packagist). You need to generate a fresh Laravel skeleton yourself and then copy these files on top of it. This only takes a couple of minutes.
-
-### Step 1 — Create a fresh Laravel project
-On a machine with internet + Composer + PHP installed:
-
-```bash
-composer create-project laravel/laravel it-ticketing-system
-cd it-ticketing-system
-```
-
-### Step 2 — Copy these files into it
-Copy the contents of this package into the new project, overwriting/adding:
-
-```bash
-# From inside this "ticketing-system" folder:
-cp -r app/Models/*           <path-to-project>/app/Models/
-cp -r app/Http/Controllers/* <path-to-project>/app/Http/Controllers/
-cp -r database/migrations/*  <path-to-project>/database/migrations/
-cp -r database/seeders/*     <path-to-project>/database/seeders/
-cp -r resources/views/*      <path-to-project>/resources/views/
-cp routes/web.php            <path-to-project>/routes/web.php
-```
-
-(On Windows, just drag-and-drop/merge the folders in File Explorer or your IDE.)
-
-### Step 3 — Configure the database
+### Step 1 — Configure the database
 Open `.env` in the new project. The simplest option is SQLite (already the Laravel 11/12 default):
 
 ```
@@ -49,18 +22,18 @@ touch database/database.sqlite
 
 Or use MySQL — set `DB_CONNECTION=mysql` and fill in `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, etc.
 
-### Step 4 — Link storage (so uploaded images/videos are viewable)
+### Step 2 — Link storage (so uploaded images/videos are viewable)
 ```bash
 php artisan storage:link
 ```
 
-### Step 5 — Migrate and seed default columns/categories
+### Step 3 — Migrate and seed default columns/categories
 ```bash
 php artisan migrate --seed
 ```
 This creates the default columns **To Do, In Progress, Checking, Done** and a few starter categories (Hardware, Software, Network, Account Access). You can rename/delete/add to these anytime from the "Columns" and "Categories" pages in the app.
 
-### Step 6 — Allow bigger uploads (for video files)
+### Step 4 — Allow bigger uploads (for video files)
 By default PHP limits uploads to 2MB. Edit your `php.ini` (or set in `.htaccess` / server config):
 ```
 upload_max_filesize = 100M
@@ -68,7 +41,7 @@ post_max_size = 100M
 ```
 Restart PHP/your webserver after changing this.
 
-### Step 7 — Run it
+### Step 5 — Run it
 ```bash
 php artisan serve
 ```
