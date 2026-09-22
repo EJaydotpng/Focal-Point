@@ -17,8 +17,10 @@ Route::get('/tickets/{ticket}/edit', [TicketController::class, 'edit'])->name('t
 Route::put('/tickets/{ticket}', [TicketController::class, 'update'])->name('tickets.update');
 Route::delete('/tickets/{ticket}', [TicketController::class, 'destroy'])->name('tickets.destroy');
 Route::post('/tickets/{ticket}/move', [TicketController::class, 'move'])->name('tickets.move');
+Route::post('/tickets/{ticket}/status', [TicketController::class, 'updateStatus'])->name('tickets.updateStatus');
 
 // Attachments (images / videos as reference + MOV)
+Route::post('/tickets/{ticket}/attachments', [AttachmentController::class, 'store'])->name('attachments.store');
 Route::delete('/attachments/{attachment}', [AttachmentController::class, 'destroy'])->name('attachments.destroy');
 
 // Progress indicators (statuses / columns), user-manageable

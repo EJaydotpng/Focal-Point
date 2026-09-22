@@ -23,7 +23,7 @@
 
         <div class="space-y-2">
             @foreach ($statuses as $status)
-                <div class="flex items-center justify-between border border-slate-200 rounded-lg px-4 py-2.5">
+                <div id="status-{{ $status->id }}" class="flex items-center justify-between border border-slate-200 rounded-lg px-4 py-2.5 scroll-mt-6">
                     <form method="POST" action="{{ route('statuses.update', $status) }}" class="flex items-center gap-3 flex-1">
                         @csrf @method('PUT')
                         <input type="color" name="color" value="{{ $status->color }}" onchange="this.form.submit()" class="h-7 w-10 rounded border-slate-300">

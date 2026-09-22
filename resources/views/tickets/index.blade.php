@@ -38,6 +38,7 @@
             <div class="p-2 space-y-2 overflow-y-auto flex-1 board-column" data-status-id="{{ $status->id }}">
                 @foreach ($status->tickets as $ticket)
                     <a href="{{ route('tickets.show', $ticket) }}"
+                       @click.prevent="openTicketModal('{{ route('tickets.show', $ticket) }}')"
                        data-ticket-id="{{ $ticket->id }}"
                        class="ticket-card block bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg p-3 cursor-grab active:cursor-grabbing">
                         <div class="flex items-start justify-between gap-2">

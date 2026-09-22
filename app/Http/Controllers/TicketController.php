@@ -68,20 +68,31 @@ class TicketController extends Controller
         return redirect()->route('tickets.show', $ticket)->with('success', 'Ticket created.');
     }
 
+    // Full ticket page (used for direct links/bookmarks, and as a fallback without JS).
     public function show(Ticket $ticket)
     {
         $ticket->load(['status', 'categories', 'attachments']);
         $statuses = Status::orderBy('order')->get();
         $categories = Category::orderBy('name')->get();
 
+        // If this was opened via the board's modal (fetch/XHR), return just the
+        // inner content, no layout wrapper - so it can drop straight into the modal.
+        if ($this->wantsPartial(request())) {
+            return view('tickets._modal_content', compact('ticket', 'statuses', 'categories'));
+        }
+
         return view('tickets.show', compact('ticket', 'statuses', 'categories'));
     }
 
-    public function edit(Ticket $ticket)
+    public function edit(Request $request, Ticket $ticket)
     {
         $ticket->load('categories');
         $statuses = Status::orderBy('order')->get();
         $categories = Category::orderBy('name')->get();
+
+        if ($this->wantsPartial($request)) {
+            return view('tickets._edit_modal_content', compact('ticket', 'statuses', 'categories'));
+        }
 
         return view('tickets.edit', compact('ticket', 'statuses', 'categories'));
     }
@@ -106,15 +117,23 @@ class TicketController extends Controller
 
         $this->storeAttachments($request, $ticket);
 
+        if ($this->wantsPartial($request)) {
+            return response()->json(['ok' => true]);
+        }
+
         return redirect()->route('tickets.show', $ticket)->with('success', 'Ticket updated.');
     }
 
-    public function destroy(Ticket $ticket)
+    public function destroy(Request $request, Ticket $ticket)
     {
         foreach ($ticket->attachments as $attachment) {
             \Storage::disk('public')->delete($attachment->file_path);
         }
         $ticket->delete();
+
+        if ($this->wantsPartial($request)) {
+            return response()->json(['ok' => true]);
+        }
 
         return redirect()->route('tickets.index')->with('success', 'Ticket deleted.');
     }
@@ -139,6 +158,24 @@ class TicketController extends Controller
         }
 
         return response()->json(['ok' => true]);
+    }
+
+    // AJAX endpoint used by the status <select> inside the ticket modal, so changing
+    // status doesn't need to navigate away or resubmit the whole ticket form.
+    public function updateStatus(Request $request, Ticket $ticket)
+    {
+        $data = $request->validate([
+            'status_id' => 'required|exists:statuses,id',
+        ]);
+
+        $maxOrder = Ticket::where('status_id', $data['status_id'])->max('board_order') ?? 0;
+
+        $ticket->update([
+            'status_id' => $data['status_id'],
+            'board_order' => $maxOrder + 1,
+        ]);
+
+        return response()->json(['ok' => true, 'status_name' => $ticket->status->name]);
     }
 
     protected function storeAttachments(Request $request, Ticket $ticket): void
@@ -166,5 +203,12 @@ class TicketController extends Controller
                 'size' => $file->getSize(),
             ]);
         }
+    }
+
+    // True when the request came from our own fetch() calls (board modal, AJAX actions),
+    // as opposed to a normal browser page load / direct link.
+    protected function wantsPartial(Request $request): bool
+    {
+        return $request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest';
     }
 }
