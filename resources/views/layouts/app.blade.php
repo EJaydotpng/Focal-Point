@@ -40,13 +40,16 @@
         <div class="max-w-7xl mx-auto px-4 flex items-center justify-between h-14">
             <a href="{{ route('tickets.index') }}" class="font-semibold text-lg flex items-center gap-2">
                 <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-                Focal Point
+                IT Support Desk
             </a>
-            <div class="flex gap-1 text-sm">
+            <div class="flex items-center gap-1 text-sm">
                 <a href="{{ route('tickets.index') }}" class="px-3 py-2 rounded hover:bg-slate-700 {{ request()->routeIs('tickets.*') ? 'bg-slate-700' : '' }}">Board</a>
                 <a href="{{ route('statuses.index') }}" class="px-3 py-2 rounded hover:bg-slate-700 {{ request()->routeIs('statuses.*') ? 'bg-slate-700' : '' }}">Columns</a>
                 <a href="{{ route('categories.index') }}" class="px-3 py-2 rounded hover:bg-slate-700 {{ request()->routeIs('categories.*') ? 'bg-slate-700' : '' }}">Categories</a>
-                <a href="{{ route('tickets.create') }}" class="ml-2 px-3 py-2 rounded bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-medium">+ New Ticket</a>
+                <span class="w-px h-5 bg-slate-700 mx-1"></span>
+                <button type="button" onclick="openModal('{{ route('statuses.create') }}')" class="px-3 py-2 rounded hover:bg-slate-700">+ Column</button>
+                <button type="button" onclick="openModal('{{ route('categories.create') }}')" class="px-3 py-2 rounded hover:bg-slate-700">+ Category</button>
+                <button type="button" onclick="openModal('{{ route('tickets.create') }}')" class="ml-2 px-3 py-2 rounded bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-medium">+ New Ticket</button>
             </div>
         </div>
     </nav>
@@ -98,8 +101,16 @@
             return document.querySelector('meta[name="csrf-token"]').content;
         }
 
+        // Bridges plain onclick="..." handlers (which run in global scope) to the
+        // openTicketModal method that actually lives inside Alpine's x-data on <body>.
         function openTicketModal(url) {
             Alpine.$data(document.body).openTicketModal(url);
+        }
+
+        // Generic alias - used when opening non-ticket modals (new column, new category)
+        // so the calling code reads naturally, but it's the exact same modal underneath.
+        function openModal(url) {
+            openTicketModal(url);
         }
 
         async function changeTicketStatus(ticketId, statusId) {
@@ -180,7 +191,8 @@
                 alert('Upload failed. Please check the file size/type and try again.');
             }
         }
-                // Swaps the modal from "view" mode into the edit form (loaded via AJAX).
+
+        // Swaps the modal from "view" mode into the edit form (loaded via AJAX).
         function openEditModal(ticketId) {
             openTicketModal(`/tickets/${ticketId}/edit`);
         }
@@ -227,6 +239,134 @@
                 errorEl.classList.remove('hidden');
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Save Changes';
+            }
+        }
+        // Submits the "create ticket" modal form without leaving/reloading the page.
+        async function submitCreateTicket(event) {
+            event.preventDefault();
+            const form = event.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const errorEl = form.querySelector('.form-error');
+            errorEl.classList.add('hidden');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating…';
+
+            const formData = new FormData(form);
+
+            try {
+                const res = await fetch('{{ route('tickets.store') }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken(),
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: formData,
+                });
+
+                if (!res.ok) {
+                    const data = await res.json().catch(() => null);
+                    errorEl.textContent = data?.message || 'Please check the form and try again.';
+                    errorEl.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Ticket';
+                    return;
+                }
+
+                const root = Alpine.$data(document.body);
+                root.needsReload = true;
+                root.closeModal();
+            } catch (e) {
+                errorEl.textContent = 'Something went wrong. Please try again.';
+                errorEl.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Ticket';
+            }
+        }
+
+        // Submits the "create column" modal form without leaving/reloading the page.
+        async function submitCreateStatus(event) {
+            event.preventDefault();
+            const form = event.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const errorEl = form.querySelector('.form-error');
+            errorEl.classList.add('hidden');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating…';
+
+            const formData = new FormData(form);
+
+            try {
+                const res = await fetch('{{ route('statuses.store') }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken(),
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: formData,
+                });
+
+                if (!res.ok) {
+                    const data = await res.json().catch(() => null);
+                    errorEl.textContent = data?.message || 'Please check the form and try again.';
+                    errorEl.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Column';
+                    return;
+                }
+
+                const root = Alpine.$data(document.body);
+                root.needsReload = true;
+                root.closeModal();
+            } catch (e) {
+                errorEl.textContent = 'Something went wrong. Please try again.';
+                errorEl.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Column';
+            }
+        }
+
+        // Submits the "create category" modal form without leaving/reloading the page.
+        async function submitCreateCategory(event) {
+            event.preventDefault();
+            const form = event.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const errorEl = form.querySelector('.form-error');
+            errorEl.classList.add('hidden');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating…';
+
+            const formData = new FormData(form);
+
+            try {
+                const res = await fetch('{{ route('categories.store') }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken(),
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: formData,
+                });
+
+                if (!res.ok) {
+                    const data = await res.json().catch(() => null);
+                    errorEl.textContent = data?.message || 'Please check the form and try again. (Category names must be unique.)';
+                    errorEl.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Category';
+                    return;
+                }
+
+                const root = Alpine.$data(document.body);
+                root.needsReload = true;
+                root.closeModal();
+            } catch (e) {
+                errorEl.textContent = 'Something went wrong. Please try again.';
+                errorEl.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Category';
             }
         }
     </script>

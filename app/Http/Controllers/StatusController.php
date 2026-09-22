@@ -13,6 +13,16 @@ class StatusController extends Controller
         return view('statuses.index', compact('statuses'));
     }
 
+    // Used by the board's "+ Column" button to load the create-column form into the modal.
+    public function create(Request $request)
+    {
+        if ($this->wantsPartial($request)) {
+            return view('statuses._create_modal_content');
+        }
+
+        return redirect()->route('statuses.index');
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -27,6 +37,10 @@ class StatusController extends Controller
             'color' => $data['color'] ?? '#6B7280',
             'order' => $maxOrder + 1,
         ]);
+
+        if ($this->wantsPartial($request)) {
+            return response()->json(['ok' => true]);
+        }
 
         return back()->with('success', 'Progress indicator (column) created.');
     }
@@ -67,5 +81,12 @@ class StatusController extends Controller
         }
 
         return response()->json(['ok' => true]);
+    }
+
+    // True when the request came from our own fetch() calls (board modal),
+    // as opposed to a normal browser page load / direct link.
+    protected function wantsPartial(Request $request): bool
+    {
+        return $request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest';
     }
 }

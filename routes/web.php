@@ -25,6 +25,7 @@ Route::delete('/attachments/{attachment}', [AttachmentController::class, 'destro
 
 // Progress indicators (statuses / columns), user-manageable
 Route::get('/statuses', [StatusController::class, 'index'])->name('statuses.index');
+Route::get('/statuses/create', [StatusController::class, 'create'])->name('statuses.create');
 Route::post('/statuses', [StatusController::class, 'store'])->name('statuses.store');
 Route::put('/statuses/{status}', [StatusController::class, 'update'])->name('statuses.update');
 Route::delete('/statuses/{status}', [StatusController::class, 'destroy'])->name('statuses.destroy');
@@ -32,6 +33,7 @@ Route::post('/statuses/reorder', [StatusController::class, 'reorder'])->name('st
 
 // Categories, user-manageable
 Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+Route::get('/categories/create', [CategoryController::class, 'create'])->name('categories.create');
 Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
 Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
 Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');

@@ -26,14 +26,21 @@ class TicketController extends Controller
         return view('tickets.index', compact('statuses', 'categories'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $statuses = Status::orderBy('order')->get();
         $categories = Category::orderBy('name')->get();
 
         if ($statuses->isEmpty()) {
+            if ($this->wantsPartial($request)) {
+                return view('tickets._no_columns_modal_content');
+            }
             return redirect()->route('statuses.index')
                 ->with('error', 'Create at least one progress indicator (e.g. To Do) before adding tickets.');
+        }
+
+        if ($this->wantsPartial($request)) {
+            return view('tickets._create_modal_content', compact('statuses', 'categories'));
         }
 
         return view('tickets.create', compact('statuses', 'categories'));
@@ -64,6 +71,10 @@ class TicketController extends Controller
         }
 
         $this->storeAttachments($request, $ticket);
+
+        if ($this->wantsPartial($request)) {
+            return response()->json(['ok' => true, 'ticket_id' => $ticket->id]);
+        }
 
         return redirect()->route('tickets.show', $ticket)->with('success', 'Ticket created.');
     }

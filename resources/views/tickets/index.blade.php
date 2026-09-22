@@ -21,7 +21,7 @@
 
 @if ($statuses->isEmpty())
     <div class="bg-white rounded-xl border border-dashed border-slate-300 p-10 text-center text-slate-500">
-        No columns yet. <a href="{{ route('statuses.index') }}" class="text-emerald-600 underline">Create your first progress indicator</a> (e.g. To Do, In Progress, Checking, Done).
+        No columns yet. <button type="button" onclick="openModal('{{ route('statuses.create') }}')" class="text-emerald-600 underline">Create your first progress indicator</button> (e.g. To Do, In Progress, Checking, Done).
     </div>
 @else
 <div class="flex gap-4 overflow-x-auto pb-4">
